@@ -172,22 +172,60 @@ class MovieDetailViewController: UIViewController {
     
     @IBAction func toggleFavorite(_ sender: AnyObject) {
         
-        // let shouldFavorite = !isFavorite
+        let shouldFavorite = !isFavorite
         
         /* TASK: Add movie as favorite, then update favorite buttons */
         /* 1. Set the parameters */
+        let methodParameters = [
+            Constants.TMDBParameterKeys.ApiKey: Constants.TMDBParameterValues.ApiKey,
+            Constants.TMDBParameterKeys.SessionID: appDelegate.sessionID
+        ]
+        
         /* 2/3. Build the URL, Configure the request */
+        
         /* 4. Make the request */
+        let task = appDelegate.sharedSession.dataTask(with: request){(data,response,error) in
+            
+            /* GUARD: Was there an error? */
+            guard (error == nil) else {
+                print("There was an error with your request: \(error)")
+                return
+            }
+            
+            /* GUARD: Did we get a successful 2XX response? */
+            guard let statusCode = (response as? HTTPURLResponse)?.statusCode, statusCode >= 200 && statusCode <= 299 else {
+                print("Your request returned a status code other than 2xx!")
+                return
+            }
+            
+            /* GUARD: Was there any data returned? */
+            guard let data = data else {
+                print("No data was returned by the request!")
+                return
+            }
+            
         /* 5. Parse the data */
+            let parsedResult: [String:AnyObject]!
+            do {
+                parsedResult = try JSONSerialization.jsonObject(with: data, options: .allowFragments) as! [String:AnyObject]
+            } catch {
+                print("Could not parse the data as JSON: '\(data)'")
+                return
+            }
+            
+            /* GUARD: Did we receive a TMDB status_code? */
+            guard let tmdbStatusCode = parsedResult[Constants.TMDBResponseKeys.StatusCode] as? Int else {
+                print("Could not find key '\(Constants.TMDBResponseKeys.StatusCode)' in  \(parsedResult)")
+                return
+            }
+         
         /* 6. Use the data! */
-        /* 7. Start the request */
-        
-        /* If the favorite/unfavorite request completes, then use this code to update the UI...
-        
-        performUIUpdatesOnMain {
-            self.favoriteButton.tintColor = (shouldFavorite) ? nil : UIColor.blackColor()
+            self.isFavorite = shouldFavorite
+            performUIUpdatesOnMain {
+                self.favoriteButton.tintColor = (self.isFavorite) ? nil : .black
+            }
         }
-        
-        */
+        /* 7. Start the request */
+        task.resume()
     }
 }
