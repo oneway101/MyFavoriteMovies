@@ -223,6 +223,14 @@ class MovieDetailViewController: UIViewController {
                 print("Could not find key '\(Constants.TMDBResponseKeys.StatusCode)' in  \(parsedResult)")
                 return
             }
+            /* GUARD: Did we receive the correct TMDB status_code? */
+            if shouldFavorite && !(tmdbStatusCode == 12 || tmdbStatusCode == 1){
+                print("Unrecognized '\(Constants.TMDBResponseKeys.StatusCode)' in  \(parsedResult)")
+                return
+            }else if !shouldFavorite && tmdbStatusCode == 13 {
+                print("Unrecognized '\(Constants.TMDBResponseKeys.StatusCode)' in  \(parsedResult)")
+                return
+            }
             
         /* 6. Use the data! */
             self.isFavorite = shouldFavorite
