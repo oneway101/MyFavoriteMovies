@@ -182,9 +182,14 @@ class MovieDetailViewController: UIViewController {
         ]
         
         /* 2/3. Build the URL, Configure the request */
+        var request = NSMutableURLRequest(url: appDelegate.tmdbURLFromParameters(methodParameters as [String:AnyObject], withPathExtension: "/account/\(appDelegate.userID!)/favorite"))
+        request.httpMethod = "POST"
+        request.addValue("application/json", forHTTPHeaderField: "Accept")
+        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = "{\"media_type\": \"movie\",\"media_id\": \(movie!.id),\"favorite\":\(shouldFavorite)}".data(using: String.Encoding.utf8)
         
         /* 4. Make the request */
-        let task = appDelegate.sharedSession.dataTask(with: request){(data,response,error) in
+        let task = appDelegate.sharedSession.dataTask(with: request as URLRequest){(data,response,error) in
             
             /* GUARD: Was there an error? */
             guard (error == nil) else {
@@ -218,7 +223,7 @@ class MovieDetailViewController: UIViewController {
                 print("Could not find key '\(Constants.TMDBResponseKeys.StatusCode)' in  \(parsedResult)")
                 return
             }
-         
+            
         /* 6. Use the data! */
             self.isFavorite = shouldFavorite
             performUIUpdatesOnMain {
